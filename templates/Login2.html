@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+{#使用极验验证码的登录页面#}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-quiv="x-ua-compatible" content="IE=edge">
+{#    <meta name="viewport" content="width=device-width,intial-scale=1">#}
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
+    <title>Title</title>
+</head>
+<body>
+<h3>登录页面</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <form action="" method="post" novalidate>
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="">用户名</label>
+                    <input type="text" class="form-control" id="username">
+                </div>
+                <div class="form-group">
+                    <label for="">密码</label>
+                    <input type="text" class="form-control" id="pwd">
+                </div>
+                <div class="form-group">
+                   {#  放置极验验证码#}
+                        <div id="popup-captcha"></div>
+                        </div>
+                        <input type="button" class="btn btn-primary pull-right login_btn" value="登录">
+                        <span class="error"></span>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{#bootstrap,js#}
+
+<script src="/static/jquery/jquery-3.4.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+{#引入了封装failback的接口 initgeetest#}
+<script src="/static/gt.js"></script>
+
+
+<script>
+    //极验发送登录数据的
+    var handlerPopup = function (captchaObj) {
+        captchaObj.onSuccess(function () {
+            var validate = captchaObj.getValidate();
+            $.ajax({
+                url: "/login/",
+                type: "post",
+                dataType: "json",
+                data: {
+                    username: $('#username').val(),
+                    password: $('#pwd').val(),
+                    geetest_challenge: validate.geetest_challenge,
+                    geetest_validate: validate.geetest_validate,
+                    geetest_seccode: validate.geetest_seccode,
+                    csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val()
+                },
+                success: function (response) {
+                    console.log(response);
+                if (response.status) {
+                    //登录成功
+                    location.href = "/index/";
+                } else {
+                    //登录失败
+                    $(".error").html(response.msg).css("color", "red");
+                }
+                }
+            });
+        });
+        $(".login_btn").click(function () {
+            captchaObj.show();
+        });
+        // 将验证码加到id为captcha的元素里
+        captchaObj.appendTo("#popup-captcha");
+    };
+    //当Input框获取焦点时，将之前的错误清空
+    $("#username,#pwd").focus(function(){
+            $(".error").text("")
+    })
+
+
+
+    // 验证开始需要向网站主后台获取id，challenge，success（是否启用failback）
+    $.ajax({
+        url: "/pc-geetest/register?t=" + (new Date()).getTime(), // 加随机数防止缓存
+        type: "get",
+        dataType: "json",
+        success: function (data) {
+            // 使用initGeetest接口
+            // 参数1：配置参数
+            // 参数2：回调，回调的第一个参数验证码对象，之后可以使用它做appendTo之类的事件
+            initGeetest({
+                gt: data.gt,
+                challenge: data.challenge,
+                product: "popup", // 产品形式，包括：float，embed，popup。注意只对PC版验证码有效
+                offline: !data.success, // 表示用户后台检测极验服务器是否宕机，一般不需要关注
+                new_captcha: data.new_captcha
+            }, handlerPopup);
+        }
+    });
+</script>
+</body>
+</html>

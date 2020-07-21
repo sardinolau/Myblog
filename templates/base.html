@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-quiv="x-ua-compatible" content="IE=edge">
+
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/mystyle.css">
+    <link rel="stylesheet" href="/static/font/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/theme/{{ blog.theme }}">
+    <script src="/static/jquery/jquery-3.4.1.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <title>{{ blog.title }}</title>
+</head>
+<body>
+<div class="header">
+    <p>{{ blog.title }}</p>
+    <p style="padding: 30px 10px;float: left"><a href="/index/">MYBLOG</a></p>
+</div>
+<div class="container">
+    {#    左侧广告栏#}
+    <div class="col-md-3">
+    {% load my_tags %}
+
+    {% get_left_menu username %}
+    </div>
+    {#    左侧广告栏结束#}
+
+<div class="col-md-8">
+{% block page-main %}
+
+
+{% endblock %}
+</div>
+</div>
+
+</body>
+</html>
